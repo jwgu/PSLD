@@ -302,7 +302,7 @@ def main():
     ##
 
     opt = parser.parse_args()
-    # pdb.set_trace()
+    #pdb.set_trace()
 
     if opt.laion400m:
         print("Falling back to LAION 400M model...")
@@ -345,13 +345,13 @@ def main():
     if not opt.from_file:
         prompt = opt.prompt
         assert prompt is not None
-        data = [batch_size * [prompt]]
+        prompts_data = [batch_size * [prompt]]
 
     else:
         print(f"reading prompts from {opt.from_file}")
         with open(opt.from_file, "r") as f:
-            data = f.read().splitlines()
-            data = list(chunk(data, batch_size))
+            prompts_data = f.read().splitlines()
+            prompts_data = list(chunk(prompts_data, batch_size))
 
     sample_path = os.path.join(outpath, "samples")
     os.makedirs(sample_path, exist_ok=True)
@@ -445,7 +445,7 @@ def main():
             tic = time.time()
             all_samples = list()
             for n in trange(opt.n_iter, desc="Sampling"):
-                for prompts in tqdm(data, desc="data"):
+                for prompts in tqdm(prompts_data, desc="prompts_data"):
                     uc = None
                     if opt.ffhq256:
                         shape = [opt.C, opt.H // opt.f, opt.W // opt.f]
@@ -465,7 +465,7 @@ def main():
                                                         noiser=noiser,
                                                         ffhq256=opt.ffhq256)
                     else:
-                        # pdb.set_trace()
+                        #pdb.set_trace()
                         if opt.scale != 1.0 :
                             uc = model.get_learned_conditioning(batch_size * [""])
                         if isinstance(prompts, tuple):

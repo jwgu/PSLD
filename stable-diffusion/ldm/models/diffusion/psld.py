@@ -250,6 +250,7 @@ class DDIMSampler(object):
             meas_pred = noiser(meas_pred)
             meas_error = torch.linalg.norm(meas_pred - measurements)
             
+            """
             ortho_project = image_pred - operator.transpose(operator.forward(image_pred, mask=ip_mask))
             parallel_project = operator.transpose(measurements)
             inpainted_image = parallel_project + ortho_project
@@ -261,14 +262,18 @@ class DDIMSampler(object):
             inpaint_error = torch.linalg.norm(encoded_z_0 - pred_z_0)
             
             error = inpaint_error * gamma + meas_error * omega
+            """
+            error = meas_error  # check the results (Jinwei. with only measure error)
+
             gradients = torch.autograd.grad(error, inputs=z_t)[0]
-            z_prev = z_prev - gradients
+            z_prev = z_prev - gradients # why there is no stepsize here for gradient descent (jinwei)
             print('Loss: ', error.item())
             
             return z_prev.detach(), pred_z_0.detach()
         
         elif general_inverse:
-            # print('Running general inverse module...')
+            #pdb.set_trace()
+            print('Running general inverse module...')
             z_t = torch.clone(x.detach())
             z_t.requires_grad = True
             
@@ -319,7 +324,7 @@ class DDIMSampler(object):
             meas_pred = operator.forward(image_pred)
             meas_pred = noiser(meas_pred)
             meas_error = torch.linalg.norm(meas_pred - measurements)
-            
+
             ortho_project = image_pred - operator.transpose(operator.forward(image_pred))
             parallel_project = operator.transpose(measurements)
             inpainted_image = parallel_project + ortho_project
@@ -330,9 +335,10 @@ class DDIMSampler(object):
             inpaint_error = torch.linalg.norm(encoded_z_0 - pred_z_0)
             
             error = inpaint_error * gamma + meas_error * omega
+            #error = meas_error  # check the results (Jinwei. with only measure error)
             
             gradients = torch.autograd.grad(error, inputs=z_t)[0]
-            z_prev = z_prev - gradients
+            z_prev = z_prev - gradients # why there is no stepsize here for gradient descent (jinwei)
             print('Loss: ', error.item())
             
             return z_prev.detach(), pred_z_0.detach()
